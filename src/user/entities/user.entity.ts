@@ -1,4 +1,10 @@
-import { Column, PrimaryGeneratedColumn, Entity } from 'typeorm';
+import {
+  Column,
+  PrimaryGeneratedColumn,
+  Entity,
+  AfterInsert,
+  AfterRemove,
+} from 'typeorm';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -7,4 +13,12 @@ export class User {
   email: string;
   @Column()
   password: string;
+  @AfterInsert()
+  logInser() {
+    return 'Insert';
+  }
+  @AfterRemove()
+  logRemove() {
+    return 'Remove';
+  }
 }

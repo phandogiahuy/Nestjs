@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { Report } from './report/entities/report.entity';
+const cookieSession = require('cookie-session');
 @Module({
   imports: [
     ReportModule,
