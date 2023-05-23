@@ -11,7 +11,7 @@ import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot(),
     ReportModule,
     UserModule,
     TypeOrmModule.forRoot({

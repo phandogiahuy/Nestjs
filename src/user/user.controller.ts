@@ -8,18 +8,26 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  Res,
   Session,
   UseInterceptors,
 } from '@nestjs/common';
+import { Response } from 'express';
+import { ActiveUser } from 'src/decorators/active-user-decorator';
+import { Auth } from 'src/decorators/auth-decorator';
+import { AuthType } from 'src/enum/auth-type.enum';
+import { ActiveUserData } from 'src/interface/active-user.interface';
 import { UserDto } from 'src/report/dto/user.dto';
 import { Serialize } from 'src/serialize/serialize.interceptor';
 
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 @Controller('auth')
-@Serialize(UserDto)
+// @Serialize(UserDto)
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -31,13 +39,25 @@ export class UserController {
     return this.authService.signup(body.email, body.password);
   }
 
+  @Auth(AuthType.None)
   @Post('/signin')
-  signin(@Body() body: CreateUserDto) {
-    return this.authService.signin(body.email, body.password);
+  async signin(
+    @Res({ passthrough: true }) response: Response,
+    @Body() body: CreateUserDto,
+  ) {
+    const accesToken = await this.authService.signin(body.email, body.password);
+    response.cookie('accesToken', accesToken, {
+      secure: true,
+      httpOnly: true,
+      sameSite: true,
+    });
+    return accesToken;
   }
 
+  @Auth(AuthType.Bearer)
   @Get()
-  findAll() {
+  findAll(@ActiveUser() user: ActiveUserData) {
+    console.log(user);
     return this.userService.findAll();
   }
 
@@ -70,5 +90,11 @@ export class UserController {
   @Get('/colors')
   getColor(@Session() session: any) {
     return session.color;
+  }
+
+  @Auth(AuthType.None)
+  @Post('refresh-token')
+  refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto);
   }
 }
