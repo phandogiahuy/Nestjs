@@ -1,20 +1,16 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt/dist/jwt.service';
-import { ConfigType } from '@nestjs/config/dist/types/config.type';
-import jwtConfig from 'src/config/jwt.config';
+import { Repository } from 'typeorm';
+
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private jwtService: JwtService,
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfiguaration: ConfigType<typeof jwtConfig>,
   ) {}
+
   create(createUserDto: CreateUserDto) {
     const user = this.userRepository.create(createUserDto);
     return this.userRepository.save(user);
@@ -27,9 +23,11 @@ export class UserService {
   findOne(id: number) {
     return this.userRepository.findOneBy({ id });
   }
+
   find(email: string) {
     return this.userRepository.findBy({ email });
   }
+
   async update(id: number, attrs: UpdateUserDto) {
     const user = await this.findOne(id);
     if (!user) {
@@ -46,6 +44,7 @@ export class UserService {
     }
     return this.userRepository.remove(user);
   }
+
   async findEmail(email: string) {
     return this.userRepository.findBy({ email });
   }
