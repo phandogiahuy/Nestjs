@@ -1,3 +1,5 @@
+import type { PermissionType } from 'src/authorization/guards/permission.type';
+import { Permission } from 'src/authorization/guards/permission.type';
 import {
   AfterInsert,
   AfterRemove,
@@ -5,6 +7,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
+import { Role } from '../enum/role.enum';
+import { UserPermission } from '../user.permission';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -25,4 +30,10 @@ export class User {
   logRemove() {
     return 'Remove';
   }
+
+  @Column({ enum: Role, default: Role.Regular })
+  role: Role;
+
+  // @Column({ enum: UserPermission })
+  // permissions: UserPermission;
 }

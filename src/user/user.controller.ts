@@ -14,20 +14,27 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Permissions } from 'src/authorization/decorators/permission.decorator';
+import { ROLE_KEY, Roles } from 'src/authorization/decorators/role.decorator';
+import { Permission } from 'src/authorization/guards/permission.type';
+import { FrameworkContributorPolicy } from 'src/authorization/policy/framework-contributor.policy';
 import { ActiveUser } from 'src/decorators/active-user-decorator';
 import { Auth } from 'src/decorators/auth-decorator';
+import { Policies } from 'src/decorators/policy.decorator';
 import { AuthType } from 'src/enum/auth-type.enum';
 import { ActiveUserData } from 'src/interface/active-user.interface';
-import { UserDto } from 'src/report/dto/user.dto';
 import { Serialize } from 'src/serialize/serialize.interceptor';
+import { UserDto } from 'src/user/dto/user.dto';
 
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Role } from './enum/role.enum';
 import { UserService } from './user.service';
 @Controller('auth')
 // @Serialize(UserDto)
+@Auth(AuthType.None)
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -35,6 +42,7 @@ export class UserController {
   ) {}
 
   @Post('/signup')
+  // @Permissions(Permission.CreateUser)
   create(@Body() body: CreateUserDto) {
     return this.authService.signup(body.email, body.password);
   }
@@ -55,23 +63,28 @@ export class UserController {
   }
 
   @Auth(AuthType.Bearer)
+  @Roles(Role.Admin)
+  // @Policies(new FrameworkContributorPolicy())
   @Get()
   findAll(@ActiveUser() user: ActiveUserData) {
     console.log(user);
     return this.userService.findAll();
   }
 
-  // @UseInterceptors(new SerializeInterceptor(UserDto))
+  @Roles(Role.Admin)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
+  @Roles(Role.Admin)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);
   }
 
+  // @Roles(Role.Admin)
+  // @Permissions(Permission.DeleteUser)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.userService.remove(+id);
@@ -82,17 +95,8 @@ export class UserController {
     this.userService.findEmail(email);
   }
 
-  @Get('/colors/:color')
-  setColor(@Param('color') color: string, @Session() session: any) {
-    session.color = color;
-  }
-
-  @Get('/colors')
-  getColor(@Session() session: any) {
-    return session.color;
-  }
-
-  @Auth(AuthType.None)
+  // @Auth(AuthType.Bearer)
+  // @Roles(Role.Admin)
   @Post('refresh-token')
   refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshToken(refreshTokenDto);
